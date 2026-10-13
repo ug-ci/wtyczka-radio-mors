@@ -515,6 +515,30 @@ if (!defined('ABSPATH')) {
           </div>
 
         </div>
+
+        <!-- Karta: Dostęp użytkowników do panelu (tylko administrator) -->
+        <div id="settings-access-card" class="hidden p-6 ug-card space-y-4 mt-6">
+          <div class="flex items-center gap-2">
+            <i data-lucide="users" class="w-5 h-5 text-[#0041d2]"></i>
+            <h3 class="ug-h4 !text-lg !font-bold !text-[#032c73]">Dostęp do panelu „Lista przebojów”</h3>
+          </div>
+          <p class="ug-body !text-sm !text-[#647391]">
+            Zaznacz użytkowników WordPressa, którzy mają widzieć panel i zarządzać listą. Administratorzy mają dostęp zawsze.
+          </p>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left">
+              <thead>
+                <tr class="border-b border-[#D9D9D9] text-[11px] text-[#647391] uppercase font-headings font-bold">
+                  <th class="p-3">Użytkownik</th>
+                  <th class="p-3">E-mail</th>
+                  <th class="p-3">Rola</th>
+                  <th class="p-3 text-center">Ma dostęp</th>
+                </tr>
+              </thead>
+              <tbody id="settings-access-table-body"></tbody>
+            </table>
+          </div>
+        </div>
       </div><!-- /#admin-section-settings -->
 
     </section>

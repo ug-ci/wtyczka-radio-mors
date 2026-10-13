@@ -108,6 +108,44 @@ class StudentRadioApp {
       const el = document.getElementById('admin-section-' + s);
       if (el) el.classList.toggle('hidden', s !== active);
     });
+    if (active === 'settings' && MORS.role === 'SUPER_ADMIN') this.loadAccessUsers();
+  }
+
+  // --- DOSTĘP UŻYTKOWNIKÓW DO PANELU (Ustawienia listy) ---
+  async loadAccessUsers() {
+    const card = document.getElementById('settings-access-card');
+    if (!card) return;
+    const { ok, data } = await this.apiGet('/admin/users');
+    if (!ok) return;
+    card.classList.remove('hidden');
+    this.renderAccessUsers(data.users || []);
+  }
+
+  renderAccessUsers(users) {
+    const body = document.getElementById('settings-access-table-body');
+    if (!body) return;
+    body.innerHTML = users.map((u) => `
+      <tr class="border-b border-[#D9D9D9] text-xs">
+        <td class="p-3 font-headings font-bold text-[#032c73]">${escapeHtml(u.displayName)}</td>
+        <td class="p-3 text-[#647391]">${escapeHtml(u.email)}</td>
+        <td class="p-3 text-[#647391]">${escapeHtml((u.roles || []).join(', '))}</td>
+        <td class="p-3 text-center">
+          <input type="checkbox" class="w-4 h-4" ${u.hasAccess ? 'checked' : ''} ${u.locked ? 'disabled title="Dostęp z roli lub Twoje konto — nie można zmienić"' : ''}
+            onchange="app.toggleUserAccess(${u.id}, this.checked, this)" />
+        </td>
+      </tr>`).join('');
+  }
+
+  async toggleUserAccess(id, enabled, checkbox) {
+    checkbox.disabled = true;
+    const { ok, data } = await this.apiSend(`/admin/users/${id}/access`, 'POST', { enabled });
+    checkbox.disabled = false;
+    if (!ok) {
+      checkbox.checked = !enabled;
+      this.showToast(data.message || 'Nie udało się zmienić dostępu.', 'warning');
+      return;
+    }
+    this.showToast(enabled ? 'Nadano dostęp do panelu.' : 'Odebrano dostęp do panelu.', 'success');
   }
 
   // Przełączanie zakładek Notowanie / Poczekalnia w sekcji Utwory

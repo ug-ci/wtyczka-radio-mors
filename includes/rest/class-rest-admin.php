@@ -92,6 +92,18 @@ class Admin {
             [ 'methods' => 'POST', 'permission_callback' => $manage, 'callback' => [ $this, 'add_editor' ] ],
         ] );
 
+        register_rest_route( 'mors/v1', '/admin/users', [
+            'methods'             => 'GET',
+            'permission_callback' => $manage,
+            'callback'            => [ $this, 'list_users_access' ],
+        ] );
+
+        register_rest_route( 'mors/v1', '/admin/users/(?P<id>\d+)/access', [
+            'methods'             => 'POST',
+            'permission_callback' => $manage,
+            'callback'            => [ $this, 'set_user_access' ],
+        ] );
+
         register_rest_route( 'mors/v1', '/admin/editors/(?P<id>\d+)', [
             'methods'             => 'DELETE',
             'permission_callback' => $manage,
@@ -645,6 +657,59 @@ class Admin {
         ( new Votes_Repo() )->log( get_current_user_id(), 'EDITOR_REMOVE', [ 'userId' => $user->ID ] );
 
         return new \WP_REST_Response( [ 'success' => true ], 200 );
+    }
+
+    /** Czy użytkownik ma dostęp do panelu tylko dzięki roli (nie da się go odebrać per‑user). */
+    private function access_from_role( \WP_User $u ) {
+        return user_can( $u, \Mors_Enum::CAP_EDIT_MUSIC ) && empty( $u->caps[ \Mors_Enum::CAP_EDIT_MUSIC ] );
+    }
+
+    /** GET /admin/users — wszyscy użytkownicy WP z informacją o dostępie do panelu. */
+    public function list_users_access( $req ) {
+        $me  = get_current_user_id();
+        $out = [];
+        foreach ( get_users( [ 'orderby' => 'display_name', 'order' => 'ASC' ] ) as $u ) {
+            $out[] = [
+                'id'          => $u->ID,
+                'displayName' => $u->display_name,
+                'email'       => $u->user_email,
+                'roles'       => array_values( $u->roles ),
+                'hasAccess'   => user_can( $u, \Mors_Enum::CAP_EDIT_MUSIC ),
+                'locked'      => $u->ID === $me || $this->access_from_role( $u ),
+            ];
+        }
+        return new \WP_REST_Response( [ 'success' => true, 'users' => $out ], 200 );
+    }
+
+    /** POST /admin/users/{id}/access {enabled} — nadaje/odbiera dostęp do panelu. */
+    public function set_user_access( $req ) {
+        $user = get_user_by( 'id', (int) $req['id'] );
+        if ( ! $user ) {
+            return new \WP_REST_Response( [ 'success' => false, 'message' => 'Nie znaleziono użytkownika.' ], 404 );
+        }
+        $body    = $req->get_json_params();
+        $enabled = ! empty( $body['enabled'] ) && $body['enabled'] !== 'false';
+
+        if ( ! $enabled ) {
+            if ( $user->ID === get_current_user_id() ) {
+                return new \WP_REST_Response( [ 'success' => false, 'message' => 'Nie możesz odebrać dostępu samemu sobie.' ], 409 );
+            }
+            if ( $this->access_from_role( $user ) ) {
+                return new \WP_REST_Response( [ 'success' => false, 'message' => 'Ten użytkownik ma dostęp z tytułu roli (np. administrator) — nie można go odebrać.' ], 409 );
+            }
+        }
+
+        if ( $enabled ) {
+            $user->add_cap( \Mors_Enum::CAP_EDIT_MUSIC );
+            $user->add_cap( \Mors_Enum::CAP_PRESENT );
+        } else {
+            $user->remove_cap( \Mors_Enum::CAP_EDIT_MUSIC );
+            $user->remove_cap( \Mors_Enum::CAP_PRESENT );
+        }
+
+        ( new Votes_Repo() )->log( get_current_user_id(), $enabled ? 'ACCESS_GRANT' : 'ACCESS_REVOKE', [ 'userId' => $user->ID ] );
+
+        return new \WP_REST_Response( [ 'success' => true, 'hasAccess' => user_can( $user, \Mors_Enum::CAP_EDIT_MUSIC ) ], 200 );
     }
 
     /** Kształt {id,email,fullName,role,isActive,createdAt} współdzielony przez GET/POST. */
