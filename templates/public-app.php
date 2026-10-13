@@ -191,6 +191,10 @@ if (!defined('ABSPATH')) {
                 Wszystkie utwory zgłoszone do Listy Przebojów z podziałem na Główne Notowanie oraz Poczekalnię.
               </p>
             </div>
+            <button type="button" onclick="app.openAddTrackModal()" class="btn-ug-primary flex-shrink-0">
+              <i data-lucide="plus-circle" class="w-4 h-4"></i>
+              <span>Dodaj utwór</span>
+            </button>
           </div>
 
           <!-- Pasek tabów: Notowanie / Poczekalnia -->
@@ -765,6 +769,84 @@ if (!defined('ABSPATH')) {
         </button>
       </div>
     </div>
+  </div>
+
+  <!-- Lightbox: dodawanie utworu -->
+  <div id="admin-add-track-modal" class="hidden fixed inset-0 z-50 ug-modal-backdrop flex items-center justify-center p-4 overflow-y-auto">
+    <form class="bg-white border border-[#D9D9D9] p-6 sm:p-8 max-w-lg w-full shadow-ug-lg space-y-5 my-auto"
+      onsubmit="event.preventDefault(); app.saveNewTrack();">
+      <div class="flex items-center justify-between gap-3">
+        <h3 class="ug-h4 !text-lg !font-bold !text-[#032c73] flex items-center gap-2">
+          <i data-lucide="plus-circle" class="w-5 h-5 text-[#0041d2]"></i>
+          <span>Dodaj utwór</span>
+        </h3>
+        <button type="button" onclick="app.closeAddTrackModal()" class="text-[#647391] hover:text-[#032c73] p-1" title="Zamknij">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="ug-form-group">
+        <label class="ug-form-label" for="add-track-title">Tytuł</label>
+        <input type="text" id="add-track-title" class="ug-input" required />
+      </div>
+      <div class="ug-form-group">
+        <label class="ug-form-label" for="add-track-artist">Wykonawca</label>
+        <input type="text" id="add-track-artist" class="ug-input" required />
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="ug-form-group">
+          <label class="ug-form-label" for="add-track-target">Docelowa sekcja</label>
+          <select id="add-track-target" class="ug-select">
+            <option value="waiting">Poczekalnia</option>
+            <option value="chart">Notowanie Główne</option>
+          </select>
+        </div>
+        <div class="ug-form-group">
+          <label class="ug-form-label" for="add-track-duration">Czas trwania (min:sek)</label>
+          <input type="text" id="add-track-duration" value="3:30" class="ug-input" />
+        </div>
+      </div>
+
+      <div class="p-4 bg-[#F5F5F5] border border-[#D9D9D9] space-y-2">
+        <label class="ug-form-label !mb-0">Plik audio (.WAV, .FLAC, .MP3, .OGG, .M4A) — opcjonalnie</label>
+        <p id="add-track-audio-status" class="ug-small !text-xs text-[#647391]">Nie wybrano pliku.</p>
+        <p class="ug-small !text-[11px] text-[#647391]">Max <?php echo esc_html( size_format( min( 120 * MB_IN_BYTES, wp_max_upload_size() ) ) ); ?>.</p>
+        <input type="file" id="add-track-audio-input" accept=".wav,.flac,.mp3,.ogg,.m4a,audio/*" class="hidden"
+          onchange="app.onAddAudioSelected(this.files[0])" />
+        <button type="button" onclick="document.getElementById('add-track-audio-input').click()" class="btn-ug-outlined btn-ug-sm">
+          <i data-lucide="music" class="w-4 h-4"></i><span>Wybierz plik audio</span>
+        </button>
+      </div>
+
+      <div class="p-4 bg-[#F5F5F5] border border-[#D9D9D9] space-y-3">
+        <label class="ug-form-label !mb-0">Okładka (.JPG, .PNG, .WEBP, max 2 MB) — opcjonalnie</label>
+        <div class="flex items-center gap-4">
+          <div class="w-20 h-20 bg-[#00214d] flex items-center justify-center overflow-hidden flex-shrink-0 border border-[#D9D9D9]">
+            <img id="add-track-cover-img" src="" alt="Okładka" class="hidden w-full h-full object-cover" />
+            <i id="add-track-cover-placeholder" data-lucide="music" class="w-6 h-6 text-white"></i>
+          </div>
+          <div class="flex flex-col gap-2">
+            <input type="file" id="add-track-cover-input" accept="image/jpeg,image/png,image/webp,image/gif" class="hidden"
+              onchange="app.onAddCoverSelected(this.files[0])" />
+            <button type="button" onclick="document.getElementById('add-track-cover-input').click()" class="btn-ug-outlined btn-ug-sm">
+              <i data-lucide="upload" class="w-4 h-4"></i><span>Wybierz okładkę</span>
+            </button>
+            <button type="button" id="add-track-cover-remove" onclick="app.onAddCoverSelected(null)"
+              class="hidden btn-ug-outlined btn-ug-sm !text-[#EF305E] !border-[#EF305E]/40 hover:!bg-[#EF305E]/10">
+              <i data-lucide="trash-2" class="w-4 h-4"></i><span>Usuń okładkę</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-3 pt-2">
+        <button type="button" onclick="app.closeAddTrackModal()"
+          class="px-4 py-2 text-[#647391] hover:text-[#032c73] text-xs font-headings font-semibold">Anuluj</button>
+        <button type="submit" id="add-track-save-btn" class="btn-ug-primary">
+          <i data-lucide="check" class="w-4 h-4"></i><span>Dodaj utwór</span>
+        </button>
+      </div>
+    </form>
   </div>
 
   <!-- Lightbox: edycja utworu -->

@@ -297,11 +297,23 @@ class Admin {
         return true;
     }
 
+    /** Usuwa załącznik z biblioteki mediów na podstawie jego URL-a (no-op, gdy to nie załącznik). */
+    private function delete_media_by_url( $url ) {
+        if ( empty( $url ) ) {
+            return;
+        }
+        $att_id = attachment_url_to_postid( $url );
+        if ( $att_id && get_post_type( $att_id ) === 'attachment' ) {
+            wp_delete_attachment( $att_id, true );
+        }
+    }
+
     /** PUT /admin/tracks/{id} — częściowa aktualizacja (tylko obecne klucze). */
     public function update_track( $req ) {
         $id   = $req['id'];
         $repo = new Tracks_Repo();
-        if ( ! $repo->find( $id ) ) {
+        $existing = $repo->find( $id );
+        if ( ! $existing ) {
             return new \WP_REST_Response( [ 'success' => false, 'message' => 'Utwór nie istnieje.' ], 404 );
         }
 
@@ -358,15 +370,12 @@ class Admin {
             $data['cover_image_url'] = null;
         }
 
-        $old_audio_url = ( isset( $data['audio_url'] ) ) ? (string) ( $repo->find( $id )['audio_url'] ?? '' ) : '';
-
         $repo->update( $id, $data );
 
-        // Po udanej podmianie usuń poprzedni plik audio z biblioteki mediów.
-        if ( $old_audio_url !== '' && $old_audio_url !== $data['audio_url'] ) {
-            $old_id = attachment_url_to_postid( $old_audio_url );
-            if ( $old_id ) {
-                wp_delete_attachment( $old_id, true );
+        // Po udanym zapisie usuń zastąpione pliki (audio/okładka) z biblioteki mediów.
+        foreach ( [ 'audio_url', 'cover_image_url' ] as $col ) {
+            if ( array_key_exists( $col, $data ) && $data[ $col ] !== $existing[ $col ] ) {
+                $this->delete_media_by_url( $existing[ $col ] );
             }
         }
 
@@ -443,11 +452,14 @@ class Admin {
     /** DELETE /admin/tracks/{id} — kaskadowe usunięcie (wpisy + głosy + utwór). */
     public function delete_track( $req ) {
         $id   = $req['id'];
-        $repo = new Tracks_Repo();
-        if ( ! $repo->find( $id ) ) {
+        $repo  = new Tracks_Repo();
+        $track = $repo->find( $id );
+        if ( ! $track ) {
             return new \WP_REST_Response( [ 'success' => false, 'message' => 'Utwór nie istnieje.' ], 404 );
         }
         $repo->delete( $id );
+        $this->delete_media_by_url( $track['audio_url'] );
+        $this->delete_media_by_url( $track['cover_image_url'] );
         ( new Votes_Repo() )->log( get_current_user_id(), 'TRACK_DELETE', [ 'trackId' => $id ] );
 
         return new \WP_REST_Response( [ 'success' => true ], 200 );

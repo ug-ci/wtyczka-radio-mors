@@ -1758,6 +1758,130 @@ class StudentRadioApp {
     this.render();
   }
 
+  // --- DODAWANIE UTWORU (lightbox) ---
+  openAddTrackModal() {
+    if (!this.adminUser) {
+      this.showToast('Wymagane uprawnienia redaktora.', 'warning');
+      this.openAdminLoginModal();
+      return;
+    }
+    this.addAudioFile = null;
+    this.addCoverFile = null;
+    ['add-track-title', 'add-track-artist'].forEach((id) => { document.getElementById(id).value = ''; });
+    document.getElementById('add-track-duration').value = '3:30';
+    const waitingTab = document.getElementById('admin-tracks-panel-waiting');
+    document.getElementById('add-track-target').value =
+      (waitingTab && !waitingTab.classList.contains('hidden')) ? 'waiting' : 'chart';
+    document.getElementById('add-track-audio-input').value = '';
+    document.getElementById('add-track-cover-input').value = '';
+    this.renderAddAudioStatus();
+    this.renderAddCoverPreview('');
+    document.getElementById('admin-add-track-modal').classList.remove('hidden');
+    morsCreateIcons();
+  }
+
+  closeAddTrackModal() {
+    document.getElementById('admin-add-track-modal').classList.add('hidden');
+    this.addAudioFile = null;
+    this.addCoverFile = null;
+  }
+
+  renderAddAudioStatus() {
+    const el = document.getElementById('add-track-audio-status');
+    if (!el) return;
+    el.textContent = this.addAudioFile
+      ? `${this.addAudioFile.name} (${(this.addAudioFile.size / 1048576).toFixed(1)} MB)`
+      : 'Nie wybrano pliku.';
+  }
+
+  onAddAudioSelected(file) {
+    if (!file) return;
+    const okExt = ['.wav', '.flac', '.mp3', '.ogg', '.m4a'].some((e) => (file.name || '').toLowerCase().endsWith(e));
+    if (!okExt) {
+      this.showToast('Obsługiwane formaty audio: .WAV, .FLAC, .MP3, .OGG, .M4A', 'warning');
+      document.getElementById('add-track-audio-input').value = '';
+      return;
+    }
+    if (file.size > 120 * 1024 * 1024) {
+      this.showToast('Plik audio jest zbyt duży (max 120 MB).', 'warning');
+      document.getElementById('add-track-audio-input').value = '';
+      return;
+    }
+    this.addAudioFile = file;
+    this.renderAddAudioStatus();
+    // Podpowiedź tytułu/wykonawcy z nazwy pliku ("Wykonawca - Tytuł.mp3"), jeśli pola są puste.
+    const parts = file.name.replace(/\.[^/.]+$/, '').split(' - ');
+    const titleEl = document.getElementById('add-track-title');
+    const artistEl = document.getElementById('add-track-artist');
+    if (!titleEl.value.trim() && !artistEl.value.trim()) {
+      if (parts.length > 1) { artistEl.value = parts[0]; titleEl.value = parts.slice(1).join(' - '); }
+      else { titleEl.value = parts[0]; }
+    }
+  }
+
+  renderAddCoverPreview(url) {
+    const img = document.getElementById('add-track-cover-img');
+    const ph = document.getElementById('add-track-cover-placeholder');
+    if (url) { img.src = url; img.classList.remove('hidden'); ph.classList.add('hidden'); }
+    else { img.removeAttribute('src'); img.classList.add('hidden'); ph.classList.remove('hidden'); }
+    document.getElementById('add-track-cover-remove').classList.toggle('hidden', !url);
+  }
+
+  onAddCoverSelected(file) {
+    if (!file) {
+      this.addCoverFile = null;
+      document.getElementById('add-track-cover-input').value = '';
+      this.renderAddCoverPreview('');
+      return;
+    }
+    if (!['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(file.type)) {
+      this.showToast('Okładka musi być plikiem JPG, PNG, WEBP lub GIF.', 'warning');
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      this.showToast('Okładka jest zbyt duża (max 2 MB).', 'warning');
+      return;
+    }
+    this.addCoverFile = file;
+    const reader = new FileReader();
+    reader.onload = (e) => this.renderAddCoverPreview(e.target.result);
+    reader.readAsDataURL(file);
+  }
+
+  async saveNewTrack() {
+    const title = document.getElementById('add-track-title').value.trim();
+    const artist = document.getElementById('add-track-artist').value.trim();
+    const target = document.getElementById('add-track-target').value;
+    if (!title || !artist) {
+      this.showToast('Wprowadź tytuł utworu i wykonawcę.', 'warning');
+      return;
+    }
+    const btn = document.getElementById('add-track-save-btn');
+    btn.disabled = true;
+    btn.classList.add('opacity-75');
+    const fd = new FormData();
+    fd.append('title', title);
+    fd.append('artist', artist);
+    fd.append('target', target);
+    fd.append('duration', document.getElementById('add-track-duration').value || '3:30');
+    if (this.addCoverFile) fd.append('cover', this.addCoverFile);
+    if (this.addAudioFile) fd.append('audio', this.addAudioFile);
+
+    const { ok, data } = await this.apiUpload('/admin/tracks/upload', fd);
+    btn.disabled = false;
+    btn.classList.remove('opacity-75');
+    if (!ok) {
+      this.showToast(data.message || 'Nie udało się dodać utworu.', 'warning');
+      return;
+    }
+    this.closeAddTrackModal();
+    this.switchAdminTracksTab(target === 'waiting' ? 'waiting' : 'chart');
+    await this.refreshChartState();
+    await this.refreshAdminTracks();
+    this.render();
+    this.showToast(`Utwór "${title}" dodany do ${target === 'waiting' ? 'Poczekalni' : 'Notowania Głównego'}!`, 'success');
+  }
+
   // --- EDYCJA UTWORU (lightbox) ---
   openEditTrackModal(id) {
     if (!this.adminUser) {
