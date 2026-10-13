@@ -676,6 +676,10 @@ class StudentRadioApp {
   playCustomAudio(src) {
     const audioEl = new Audio(src);
     audioEl.addEventListener('ended', () => this.stopAudio());
+    audioEl.addEventListener('error', () => {
+      const code = audioEl.error ? audioEl.error.code : '?';
+      console.warn('Błąd ładowania pliku audio:', src, 'kod:', code);
+    });
     audioEl.play().catch((err) => {
       console.warn('Nie udało się odtworzyć pliku audio:', err);
       this.showToast('Nie udało się odtworzyć pliku audio.', 'warning');
