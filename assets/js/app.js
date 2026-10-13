@@ -1542,7 +1542,6 @@ class StudentRadioApp {
             <h4 class="font-headings font-bold text-[#032c73] text-sm truncate">${escapeHtml(track.title)}</h4>
             <p class="ug-small truncate">${escapeHtml(track.artist)}</p>
           </div>
-          <span class="ug-tag ug-tag-sail text-[10px] font-bold hidden md:inline-block flex-shrink-0">${escapeHtml(track.tag || 'Propozycja')}</span>
           <span class="ug-small hidden lg:flex items-center gap-1 flex-shrink-0">
             <i data-lucide="clock" class="w-3 h-3"></i> ${track.weeksInWaiting} tyg. w poczekalni
           </span>
