@@ -823,9 +823,9 @@ if (!defined('ABSPATH')) {
       <div class="p-4 bg-[#F5F5F5] border border-[#D9D9D9] space-y-3">
         <label class="ug-form-label !mb-0">Okładka (.JPG, .PNG, .WEBP, max 2 MB) — opcjonalnie</label>
         <div class="flex items-center gap-4">
-          <div class="w-20 h-20 bg-[#00214d] flex items-center justify-center overflow-hidden flex-shrink-0 border border-[#D9D9D9]">
+          <div style="width:150px;height:150px" class="bg-[#00214d] flex items-center justify-center overflow-hidden flex-shrink-0 border border-[#D9D9D9]">
             <img id="add-track-cover-img" src="" alt="Okładka" class="hidden w-full h-full object-cover" />
-            <i id="add-track-cover-placeholder" data-lucide="music" class="w-6 h-6 text-white"></i>
+            <i id="add-track-cover-placeholder" data-lucide="music" class="w-10 h-10 text-white"></i>
           </div>
           <div class="flex flex-wrap items-center gap-2">
             <input type="file" id="add-track-cover-input" accept="image/jpeg,image/png,image/webp,image/gif" class="hidden"
@@ -886,9 +886,9 @@ if (!defined('ABSPATH')) {
       <div class="p-4 bg-[#F5F5F5] border border-[#D9D9D9] space-y-3">
         <label class="ug-form-label !mb-0">Okładka (.JPG, .PNG, .WEBP, max 2 MB)</label>
         <div class="flex items-center gap-4">
-          <div class="w-20 h-20 bg-[#00214d] flex items-center justify-center overflow-hidden flex-shrink-0 border border-[#D9D9D9]">
+          <div style="width:150px;height:150px" class="bg-[#00214d] flex items-center justify-center overflow-hidden flex-shrink-0 border border-[#D9D9D9]">
             <img id="edit-track-cover-img" src="" alt="Okładka" class="hidden w-full h-full object-cover" />
-            <i id="edit-track-cover-placeholder" data-lucide="music" class="w-6 h-6 text-white"></i>
+            <i id="edit-track-cover-placeholder" data-lucide="music" class="w-10 h-10 text-white"></i>
           </div>
           <div class="flex flex-wrap items-center gap-2">
             <input type="file" id="edit-track-cover-input" accept="image/jpeg,image/png,image/webp,image/gif" class="hidden"
