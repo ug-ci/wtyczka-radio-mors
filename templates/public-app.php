@@ -106,6 +106,7 @@ if (!defined('ABSPATH')) {
   <!-- ================= MAIN CONTENT VIEWS ================= -->
   <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-32">
 
+    <?php if ( ! isset( $mors_admin_section ) ) : // przełącznik tylko na froncie, nie w panelu wp-admin ?>
     <!-- ===== PRZEŁĄCZNIK: NOTOWANIE / POCZEKALNIA (stały, poza widokami) ===== -->
     <div class="mb-6">
       <nav class="flex flex-wrap items-center gap-1.5" aria-label="Przełączanie widoku listy">
@@ -121,6 +122,7 @@ if (!defined('ABSPATH')) {
         </button>
       </nav>
     </div>
+    <?php endif; ?>
 
     <!-- ================= VIEW 1: GŁÓWNE NOTOWANIE (TOP 25) ================= -->
     <section id="view-chart" class="space-y-6">
