@@ -358,7 +358,18 @@ class Admin {
             $data['cover_image_url'] = null;
         }
 
+        $old_audio_url = ( isset( $data['audio_url'] ) ) ? (string) ( $repo->find( $id )['audio_url'] ?? '' ) : '';
+
         $repo->update( $id, $data );
+
+        // Po udanej podmianie usuń poprzedni plik audio z biblioteki mediów.
+        if ( $old_audio_url !== '' && $old_audio_url !== $data['audio_url'] ) {
+            $old_id = attachment_url_to_postid( $old_audio_url );
+            if ( $old_id ) {
+                wp_delete_attachment( $old_id, true );
+            }
+        }
+
         ( new Votes_Repo() )->log( get_current_user_id(), 'TRACK_UPDATE', [ 'trackId' => $id ] );
 
         return new \WP_REST_Response( [ 'success' => true, 'track' => $repo->find( $id ) ], 200 );
