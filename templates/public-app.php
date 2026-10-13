@@ -812,6 +812,18 @@ if (!defined('ABSPATH')) {
         </div>
       </div>
 
+      <div class="p-4 bg-[#F5F5F5] border border-[#D9D9D9] space-y-2">
+        <label class="ug-form-label !mb-0">Plik audio (.WAV, .FLAC, .MP3, .OGG, .M4A)</label>
+        <p id="edit-track-audio-status" class="ug-small !text-xs text-[#647391]"></p>
+        <input type="file" id="edit-track-audio-input"
+          accept=".wav,.flac,.mp3,.ogg,.m4a,audio/*" class="hidden"
+          onchange="app.onEditAudioSelected(this.files[0])" />
+        <button type="button" onclick="document.getElementById('edit-track-audio-input').click()"
+          class="btn-ug-outlined btn-ug-sm">
+          <i data-lucide="upload" class="w-4 h-4"></i><span>Podmień plik audio</span>
+        </button>
+      </div>
+
       <div class="flex items-center justify-end gap-3 pt-2">
         <button type="button" onclick="app.closeEditTrackModal()"
           class="px-4 py-2 text-[#647391] hover:text-[#032c73] text-xs font-headings font-semibold">Anuluj</button>

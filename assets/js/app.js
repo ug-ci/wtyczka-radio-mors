@@ -1771,6 +1771,10 @@ class StudentRadioApp {
     this.editCoverFile = null;
     this.editCoverRemoved = false;
     this.editCoverOriginal = t.coverImageUrl || '';
+    this.editAudioFile = null;
+    this.editHadAudio = !!t.hasAudio;
+    document.getElementById('edit-track-audio-input').value = '';
+    this.renderEditAudioStatus();
     document.getElementById('edit-track-title').value = t.title || '';
     document.getElementById('edit-track-artist').value = t.artist || '';
     document.getElementById('edit-track-cover-input').value = '';
@@ -1783,6 +1787,32 @@ class StudentRadioApp {
     document.getElementById('admin-edit-track-modal').classList.add('hidden');
     this.editingTrackId = null;
     this.editCoverFile = null;
+    this.editAudioFile = null;
+  }
+
+  renderEditAudioStatus() {
+    const el = document.getElementById('edit-track-audio-status');
+    if (!el) return;
+    el.textContent = this.editAudioFile
+      ? `Nowy plik: ${this.editAudioFile.name} (${(this.editAudioFile.size / 1048576).toFixed(1)} MB) — zostanie wgrany po zapisaniu.`
+      : (this.editHadAudio ? 'Wgrany jest plik audio.' : 'Brak pliku audio (odtwarzany jest dźwięk zastępczy).');
+  }
+
+  onEditAudioSelected(file) {
+    if (!file) return;
+    const okExt = ['.wav', '.flac', '.mp3', '.ogg', '.m4a'].some((e) => (file.name || '').toLowerCase().endsWith(e));
+    if (!okExt) {
+      this.showToast('Obsługiwane formaty audio: .WAV, .FLAC, .MP3, .OGG, .M4A', 'warning');
+      document.getElementById('edit-track-audio-input').value = '';
+      return;
+    }
+    if (file.size > 120 * 1024 * 1024) {
+      this.showToast('Plik audio jest zbyt duży (max 120 MB).', 'warning');
+      document.getElementById('edit-track-audio-input').value = '';
+      return;
+    }
+    this.editAudioFile = file;
+    this.renderEditAudioStatus();
   }
 
   renderEditCoverPreview(url) {
@@ -1827,14 +1857,17 @@ class StudentRadioApp {
     }
     const btn = document.getElementById('edit-track-save-btn');
     btn.disabled = true;
+    btn.classList.add('opacity-75');
     const fd = new FormData();
     fd.append('title', title);
     fd.append('artist', artist);
+    if (this.editAudioFile) fd.append('audio', this.editAudioFile);
     if (this.editCoverFile) fd.append('cover', this.editCoverFile);
     else if (this.editCoverRemoved && this.editCoverOriginal) fd.append('removeCover', '1');
 
     const { ok, data } = await this.apiUpload(`/admin/tracks/${this.editingTrackId}`, fd);
     btn.disabled = false;
+    btn.classList.remove('opacity-75');
     if (!ok) {
       this.showToast(data.message || 'Nie udało się zapisać zmian.', 'warning');
       return;

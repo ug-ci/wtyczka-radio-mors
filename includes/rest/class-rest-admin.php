@@ -148,6 +148,7 @@ class Admin {
                 'album'         => $t['album'],
                 'genre'         => $t['genre'],
                 'coverImageUrl' => $t['cover_image_url'],
+                'hasAudio'      => ! empty( $t['audio_url'] ),
                 'status'        => $t['status'],
                 'section'       => $section,
                 'votes'         => $entry ? (int) $entry['votes_count'] : 0,
@@ -323,6 +324,21 @@ class Admin {
             if ( array_key_exists( $f, $data ) && $data[ $f ] === '' ) {
                 return new \WP_REST_Response( [ 'success' => false, 'message' => 'Tytuł i wykonawca nie mogą być puste.' ], 400 );
             }
+        }
+
+        if ( ! empty( $_FILES['audio']['tmp_name'] ) ) {
+            $err = $this->validate_upload( 'audio', self::AUDIO_MIMES, self::AUDIO_MAX_BYTES );
+            if ( is_wp_error( $err ) ) {
+                return new \WP_REST_Response( [ 'success' => false, 'message' => $err->get_error_message() ], 400 );
+            }
+            require_once ABSPATH . 'wp-admin/includes/file.php';
+            require_once ABSPATH . 'wp-admin/includes/media.php';
+            require_once ABSPATH . 'wp-admin/includes/image.php';
+            $audio_id = media_handle_upload( 'audio', 0 );
+            if ( is_wp_error( $audio_id ) ) {
+                return new \WP_REST_Response( [ 'success' => false, 'message' => $audio_id->get_error_message() ], 400 );
+            }
+            $data['audio_url'] = wp_get_attachment_url( $audio_id );
         }
 
         if ( ! empty( $_FILES['cover']['tmp_name'] ) ) {
