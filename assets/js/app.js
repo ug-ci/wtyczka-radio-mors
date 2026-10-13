@@ -271,16 +271,23 @@ class StudentRadioApp {
 
   async apiSend(path, method, body) {
     // Żądania piszące (POST/DELETE/PUT) wymagają nonce WP REST + ciasteczka sesji.
+    // DELETE/PUT bywają blokowane przez serwer/WAF (405/403) — wysyłamy je jako POST
+    // z nagłówkiem X-HTTP-Method-Override, który WP REST obsługuje natywnie.
+    const override = (method === 'DELETE' || method === 'PUT') ? method : null;
     const res = await fetch(`${API_BASE}${path}`, {
-      method,
+      method: override ? 'POST' : method,
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
         'X-WP-Nonce': (window.morsData && window.morsData.nonce) || '',
+        ...(override ? { 'X-HTTP-Method-Override': override } : {}),
       },
       body: body !== undefined ? JSON.stringify(body) : undefined,
     });
     const data = await res.json().catch(() => ({}));
+    if (!res.ok && !data.message) {
+      data.message = `Błąd serwera (HTTP ${res.status}).`;
+    }
     return { ok: res.ok, status: res.status, data };
   }
 
