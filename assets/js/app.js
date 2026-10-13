@@ -1408,7 +1408,7 @@ class StudentRadioApp {
 
     const heroCoverHtml = heroTrack.coverImage
       ? `<img src="${heroTrack.coverImage}" alt="${escapeHtml(heroTrack.title)}" class="w-full h-full object-cover" />`
-      : `<i data-lucide="${isPlayingHero ? 'pause' : 'play'}" class="w-12 h-12 text-[#a1daf8] drop-shadow group-hover:scale-110 transition-transform"></i>`;
+      : `<i data-lucide="${isPlayingHero ? 'pause' : 'music'}" class="w-12 h-12 text-[#a1daf8] drop-shadow group-hover:scale-110 transition-transform"></i>`;
 
     let html = `
       <div class="ug-featured-card mb-8">
@@ -1475,7 +1475,7 @@ class StudentRadioApp {
 
       const trackCoverHtml = track.coverImage
         ? `<img src="${track.coverImage}" alt="${escapeHtml(track.title)}" class="w-full h-full object-cover" />`
-        : `<i data-lucide="${isPlaying ? 'pause' : 'play'}" class="w-5 h-5 text-white group-hover/art:scale-110 transition-transform"></i>`;
+        : `<i data-lucide="${isPlaying ? 'pause' : 'music'}" class="w-5 h-5 text-white group-hover/art:scale-110 transition-transform"></i>`;
 
       html += `
         <div class="group flex items-center justify-between p-3.5 md:p-4 ug-card ${isSelected ? 'ug-card-selected' : ''}">
@@ -1537,7 +1537,7 @@ class StudentRadioApp {
 
       const trackCoverHtml = track.coverImage
         ? `<img src="${track.coverImage}" alt="${escapeHtml(track.title)}" class="w-full h-full object-cover" />`
-        : `<i data-lucide="${isPlaying ? 'pause' : 'play'}" class="w-4 h-4 text-white"></i>`;
+        : `<i data-lucide="${isPlaying ? 'pause' : 'music'}" class="w-4 h-4 text-white"></i>`;
 
       html += `
         <div class="flex items-center gap-3 px-3 py-2.5 ${isSelected ? 'ug-card-selected' : ''}">
@@ -1618,7 +1618,7 @@ class StudentRadioApp {
         <td class="p-3">
           <div class="flex items-center gap-2">
             <div class="w-7 h-7 bg-[#00214d] flex-shrink-0 flex items-center justify-center text-white text-[10px] overflow-hidden">
-              ${t.coverImageUrl ? `<img src="${escapeHtml(t.coverImageUrl)}" class="w-full h-full object-cover" />` : '♫'}
+              ${t.coverImageUrl ? `<img src="${escapeHtml(t.coverImageUrl)}" class="w-full h-full object-cover" />` : '<i data-lucide="music" class="w-3.5 h-3.5 text-white"></i>'}
             </div>
             <span class="font-headings font-bold text-[#032c73]">${escapeHtml(t.title)}</span>
           </div>
