@@ -524,7 +524,9 @@ class Admin {
             return new \WP_REST_Response( [ 'success' => false, 'message' => 'Brak kolejności do zapisania.' ], 400 );
         }
         try {
-            $out = ( new Chart_Engine() )->reorder_chart( get_current_user_id(), $order );
+            $out = ( new Chart_Engine() )->reorder_chart(
+                get_current_user_id(), $order, isset( $body['section'] ) && $body['section'] === 'waiting'
+            );
             return new \WP_REST_Response( $out, 200 );
         } catch ( \RuntimeException $e ) {
             return new \WP_REST_Response( [ 'success' => false, 'message' => $e->getMessage() ], 409 );

@@ -4,7 +4,7 @@ class Entries_Repo extends Repo {
     public function for_edition( $editionId, $waiting ) {
         $db = $this->wpdb(); $t = $this->t();
         $order = $waiting
-            ? 'e.votes_count DESC, e.weeks_on_chart DESC, tr.title ASC'
+            ? 'COALESCE(e.position, 999999) ASC, e.votes_count DESC, e.weeks_on_chart DESC, tr.title ASC'
             : 'e.votes_count DESC, COALESCE(e.position, 999) ASC, e.weeks_on_chart DESC, tr.title ASC';
         $sql = $db->prepare(
             "SELECT e.*, tr.title, tr.artist, tr.album, tr.genre, tr.cover_image_url,
@@ -97,13 +97,14 @@ class Entries_Repo extends Repo {
      * Ustawia pozycje wpisów notowania (is_waiting=0) wg podanej kolejności track_id.
      * Pozycja = indeks+1. Wywoływać w transakcji (Chart_Engine::reorder_chart).
      */
-    public function reorder_chart( $editionId, array $trackIds ) {
+    public function reorder_chart( $editionId, array $trackIds, $waiting = false ) {
         $db = $this->wpdb(); $t = $this->t();
+        $w = $waiting ? 1 : 0;
         $pos = 1;
         foreach ( $trackIds as $trackId ) {
             $db->query( $db->prepare(
-                "UPDATE {$t['entries']} SET position = %d WHERE edition_id = %s AND track_id = %s AND is_waiting = 0",
-                $pos, $editionId, $trackId ) );
+                "UPDATE {$t['entries']} SET position = %d WHERE edition_id = %s AND track_id = %s AND is_waiting = %d",
+                $pos, $editionId, $trackId, $w ) );
             $pos++;
         }
     }

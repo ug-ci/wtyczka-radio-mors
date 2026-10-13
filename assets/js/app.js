@@ -1603,8 +1603,8 @@ class StudentRadioApp {
   }
 
   // Wiersz tabeli zarządzania utworem.
-  adminTrackRow(t, draggable = false, index = 0) {
-    const posNum = draggable ? (t.position != null ? t.position : (index + 1)) : (index + 1);
+  adminTrackRow(t, draggable = false, index = 0, isWaiting = false) {
+    const posNum = (draggable && !isWaiting) ? (t.position != null ? t.position : (index + 1)) : (index + 1);
     return `
       <tr class="border-b border-[#D9D9D9] hover:bg-[#e5f5fd]/50 text-xs ${draggable ? 'cursor-move' : ''}"${draggable ? ' draggable="true"' : ''} data-track-id="${t.id}">
         <td class="p-3 text-center">
@@ -1612,7 +1612,7 @@ class StudentRadioApp {
             ${draggable
               ? '<i data-lucide="grip-vertical" class="w-4 h-4 text-[#a1b0c0] flex-shrink-0" title="Przeciągnij, aby zmienić kolejność"></i>'
               : ''}
-            <span class="font-mono font-bold ${draggable ? 'text-[#0041d2]' : 'text-[#647391]'}">${posNum}</span>
+            <span class="font-mono font-bold ${(draggable && !isWaiting) ? 'text-[#0041d2]' : 'text-[#647391]'}">${posNum}</span>
           </div>
         </td>
         <td class="p-3">
@@ -1646,6 +1646,8 @@ class StudentRadioApp {
     const waiting = this.adminTracks
       .filter((t) => t.section === 'Poczekalnia')
       .sort((a, b) => {
+        const posDiff = (a.position == null ? 999999 : a.position) - (b.position == null ? 999999 : b.position);
+        if (posDiff !== 0) return posDiff;
         const votesDiff = (b.votes || 0) - (a.votes || 0);
         if (votesDiff !== 0) return votesDiff;
         const weeksDiff = (b.weeksOnChart || 0) - (a.weeksOnChart || 0);
@@ -1663,7 +1665,7 @@ class StudentRadioApp {
 
     const waitingBody = document.getElementById('admin-waiting-tracks-table-body');
     if (waitingBody) {
-      const rows = waiting.map((t, idx) => this.adminTrackRow(t, false, idx));
+      const rows = waiting.map((t, idx) => this.adminTrackRow(t, true, idx, true));
       waitingBody.innerHTML = rows.length
         ? rows.join('')
         : '<tr><td colspan="5" class="p-4 text-center text-[#647391] text-xs">Brak utworów w poczekalni.</td></tr>';
@@ -1694,11 +1696,15 @@ class StudentRadioApp {
     this.initChartDragAndDrop();
   }
 
-  // Drag & drop kolejności w tabeli Notowanie (zapisywane do /admin/chart/reorder).
+  // Drag & drop kolejności w tabelach Notowanie i Poczekalnia (zapis do /admin/chart/reorder).
   // Bindujemy raz na trwałym <tbody> (renderAdminList podmienia tylko innerHTML).
   initChartDragAndDrop() {
     if (!(window.morsData && window.morsData.isAdminPanel)) return;
-    const tbody = document.getElementById('admin-chart-tracks-table-body') || document.getElementById('admin-tracks-table-body');
+    this.bindDragAndDrop(document.getElementById('admin-chart-tracks-table-body') || document.getElementById('admin-tracks-table-body'), 'chart');
+    this.bindDragAndDrop(document.getElementById('admin-waiting-tracks-table-body'), 'waiting');
+  }
+
+  bindDragAndDrop(tbody, section) {
     if (!tbody || tbody.dataset.dndBound === '1') return;
     tbody.dataset.dndBound = '1';
     let draggedId = null;
@@ -1734,21 +1740,20 @@ class StudentRadioApp {
     });
     tbody.addEventListener('drop', (e) => {
       e.preventDefault();
-      this.persistChartOrder();
+      this.persistOrder(tbody, section);
     });
   }
 
-  // Zapisuje bieżącą kolejność wierszy notowania na serwerze.
-  async persistChartOrder() {
-    const tbody = document.getElementById('admin-chart-tracks-table-body') || document.getElementById('admin-tracks-table-body');
+  // Zapisuje bieżącą kolejność wierszy wskazanej sekcji na serwerze.
+  async persistOrder(tbody, section) {
     if (!tbody) return;
     const order = [...tbody.querySelectorAll('tr[data-track-id]')].map((tr) => tr.dataset.trackId).filter(Boolean);
     if (!order.length) return;
-    const { ok, data } = await this.apiSend('/admin/chart/reorder', 'POST', { order });
+    const { ok, data } = await this.apiSend('/admin/chart/reorder', 'POST', { order, section });
     if (!ok) {
       this.showToast((data && data.message) || 'Nie udało się zapisać kolejności.', 'warning');
     } else {
-      this.showToast('Zapisano nową kolejność notowania.', 'success');
+      this.showToast(section === 'waiting' ? 'Zapisano nową kolejność poczekalni.' : 'Zapisano nową kolejność notowania.', 'success');
     }
     await this.refreshChartState();
     if (this.adminUser) await this.refreshAdminTracks();

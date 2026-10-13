@@ -246,7 +246,7 @@ if (!defined('ABSPATH')) {
               class="flex items-center justify-between gap-2 p-3 bg-[#e5f5fd] border border-[#0041d2]/20 text-xs text-[#032c73]">
               <div class="flex items-center gap-2">
                 <i data-lucide="sparkles" class="w-4 h-4 text-[#0041d2] flex-shrink-0"></i>
-                <span>Utwory w poczekalni są uporządkowane według liczby zdobytych głosów (od najwyższej liczby).</span>
+                <span>Domyślnie utwory są uporządkowane według liczby głosów. Możesz je <strong>przeciągać</strong> (uchwyt ⋮⋮), aby ustawić własną kolejność — kolejność ręczna obowiązuje do zamknięcia bieżącego notowania.</span>
               </div>
             </div>
 

@@ -42,7 +42,7 @@ class Chart_Engine {
      * $trackIds — track_id wpisów notowania (is_waiting=0) w docelowej kolejności;
      * pozycja = indeks+1. Całość w transakcji.
      */
-    public function reorder_chart( $adminId, array $trackIds ) {
+    public function reorder_chart( $adminId, array $trackIds, $waiting = false ) {
         $ed = ( new Editions_Repo() )->current();
         if ( ! $ed ) {
             throw new \RuntimeException( 'Brak aktywnego notowania.' );
@@ -50,11 +50,11 @@ class Chart_Engine {
         $entriesRepo = new Entries_Repo();
         $votesRepo   = new Votes_Repo();
 
-        $votesRepo->tx( function () use ( $entriesRepo, $ed, $trackIds ) {
-            $entriesRepo->reorder_chart( $ed['id'], $trackIds );
+        $votesRepo->tx( function () use ( $entriesRepo, $ed, $trackIds, $waiting ) {
+            $entriesRepo->reorder_chart( $ed['id'], $trackIds, $waiting );
         } );
 
-        $votesRepo->log( $adminId, 'CHART_REORDER', [ 'editionId' => $ed['id'], 'count' => count( $trackIds ) ] );
+        $votesRepo->log( $adminId, $waiting ? 'WAITING_REORDER' : 'CHART_REORDER', [ 'editionId' => $ed['id'], 'count' => count( $trackIds ) ] );
 
         return [ 'success' => true ];
     }
