@@ -815,8 +815,8 @@ if (!defined('ABSPATH')) {
         <p class="ug-small !text-[11px] text-[#647391]">Max <?php echo esc_html( size_format( min( 120 * MB_IN_BYTES, wp_max_upload_size() ) ) ); ?>.</p>
         <input type="file" id="add-track-audio-input" accept=".wav,.flac,.mp3,.ogg,.m4a,audio/*" class="hidden"
           onchange="app.onAddAudioSelected(this.files[0])" />
-        <button type="button" onclick="document.getElementById('add-track-audio-input').click()" class="btn-ug-outlined btn-ug-sm">
-          <i data-lucide="music" class="w-4 h-4"></i><span>Wybierz plik audio</span>
+        <button type="button" onclick="document.getElementById('add-track-audio-input').click()" class="btn-ug-outlined !py-1 !px-2.5 !text-xs">
+          <i data-lucide="music" class="w-3.5 h-3.5"></i><span>Wybierz plik audio</span>
         </button>
       </div>
 
@@ -827,15 +827,15 @@ if (!defined('ABSPATH')) {
             <img id="add-track-cover-img" src="" alt="Okładka" class="hidden w-full h-full object-cover" />
             <i id="add-track-cover-placeholder" data-lucide="music" class="w-6 h-6 text-white"></i>
           </div>
-          <div class="flex flex-col gap-2">
+          <div class="flex flex-wrap items-center gap-2">
             <input type="file" id="add-track-cover-input" accept="image/jpeg,image/png,image/webp,image/gif" class="hidden"
               onchange="app.onAddCoverSelected(this.files[0])" />
-            <button type="button" onclick="document.getElementById('add-track-cover-input').click()" class="btn-ug-outlined btn-ug-sm">
-              <i data-lucide="upload" class="w-4 h-4"></i><span>Wybierz okładkę</span>
+            <button type="button" onclick="document.getElementById('add-track-cover-input').click()" class="btn-ug-outlined !py-1 !px-2.5 !text-xs">
+              <i data-lucide="upload" class="w-3.5 h-3.5"></i><span>Wybierz okładkę</span>
             </button>
             <button type="button" id="add-track-cover-remove" onclick="app.onAddCoverSelected(null)"
-              class="hidden btn-ug-outlined btn-ug-sm !text-[#EF305E] !border-[#EF305E]/40 hover:!bg-[#EF305E]/10">
-              <i data-lucide="trash-2" class="w-4 h-4"></i><span>Usuń okładkę</span>
+              class="hidden btn-ug-outlined !py-1 !px-2.5 !text-xs !text-[#EF305E] !border-[#EF305E]/40 hover:!bg-[#EF305E]/10">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i><span>Usuń okładkę</span>
             </button>
           </div>
         </div>
@@ -890,16 +890,16 @@ if (!defined('ABSPATH')) {
             <img id="edit-track-cover-img" src="" alt="Okładka" class="hidden w-full h-full object-cover" />
             <i id="edit-track-cover-placeholder" data-lucide="music" class="w-6 h-6 text-white"></i>
           </div>
-          <div class="flex flex-col gap-2">
+          <div class="flex flex-wrap items-center gap-2">
             <input type="file" id="edit-track-cover-input" accept="image/jpeg,image/png,image/webp,image/gif" class="hidden"
               onchange="app.onEditCoverSelected(this.files[0])" />
             <button type="button" onclick="document.getElementById('edit-track-cover-input').click()"
-              class="btn-ug-outlined btn-ug-sm">
-              <i data-lucide="upload" class="w-4 h-4"></i><span>Zmień okładkę</span>
+              class="btn-ug-outlined !py-1 !px-2.5 !text-xs">
+              <i data-lucide="upload" class="w-3.5 h-3.5"></i><span>Zmień okładkę</span>
             </button>
             <button type="button" id="edit-track-cover-remove" onclick="app.removeEditCover()"
-              class="hidden btn-ug-outlined btn-ug-sm !text-[#EF305E] !border-[#EF305E]/40 hover:!bg-[#EF305E]/10">
-              <i data-lucide="trash-2" class="w-4 h-4"></i><span>Usuń okładkę</span>
+              class="hidden btn-ug-outlined !py-1 !px-2.5 !text-xs !text-[#EF305E] !border-[#EF305E]/40 hover:!bg-[#EF305E]/10">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i><span>Usuń okładkę</span>
             </button>
           </div>
         </div>
@@ -912,8 +912,8 @@ if (!defined('ABSPATH')) {
           accept=".wav,.flac,.mp3,.ogg,.m4a,audio/*" class="hidden"
           onchange="app.onEditAudioSelected(this.files[0])" />
         <button type="button" onclick="document.getElementById('edit-track-audio-input').click()"
-          class="btn-ug-outlined btn-ug-sm">
-          <i data-lucide="upload" class="w-4 h-4"></i><span>Podmień plik audio</span>
+          class="btn-ug-outlined !py-1 !px-2.5 !text-xs">
+          <i data-lucide="upload" class="w-3.5 h-3.5"></i><span>Podmień plik audio</span>
         </button>
       </div>
 
