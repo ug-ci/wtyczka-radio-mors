@@ -54,6 +54,12 @@ class Admin {
             [ 'methods' => 'DELETE', 'permission_callback' => $cap, 'callback' => [ $this, 'delete_track' ] ],
         ] );
 
+        register_rest_route( 'mors/v1', '/admin/tracks/(?P<id>[a-f0-9-]+)/move', [
+            'methods'             => 'POST',
+            'permission_callback' => $cap,
+            'callback'            => [ $this, 'move_track' ],
+        ] );
+
         register_rest_route( 'mors/v1', '/admin/chart/freeze', [
             'methods'             => 'POST',
             'permission_callback' => $cap,
@@ -316,6 +322,71 @@ class Admin {
         ( new Votes_Repo() )->log( get_current_user_id(), 'TRACK_UPDATE', [ 'trackId' => $id ] );
 
         return new \WP_REST_Response( [ 'success' => true, 'track' => $repo->find( $id ) ], 200 );
+    }
+
+    /**
+     * POST /admin/tracks/{id}/move — ręczna zmiana sekcji utworu w bieżącej edycji
+     * (body: target = 'chart' | 'waiting'). Do notowania trafia na koniec listy;
+     * z notowania do poczekalni — pozycje pozostałych są zagęszczane.
+     */
+    public function move_track( $req ) {
+        $id     = $req['id'];
+        $body   = $req->get_json_params();
+        $target = isset( $body['target'] ) ? sanitize_text_field( $body['target'] ) : '';
+        if ( ! in_array( $target, [ 'chart', 'waiting' ], true ) ) {
+            return new \WP_REST_Response( [ 'success' => false, 'message' => 'Nieprawidłowy cel przeniesienia.' ], 400 );
+        }
+
+        $tracksRepo = new Tracks_Repo();
+        if ( ! $tracksRepo->find( $id ) ) {
+            return new \WP_REST_Response( [ 'success' => false, 'message' => 'Utwór nie istnieje.' ], 404 );
+        }
+        $edition = ( new Editions_Repo() )->current();
+        if ( ! $edition ) {
+            return new \WP_REST_Response( [ 'success' => false, 'message' => 'Brak aktywnego notowania.' ], 409 );
+        }
+        $entriesRepo = new Entries_Repo();
+        $entry       = $entriesRepo->find_for_track( $edition['id'], $id );
+        if ( ! $entry ) {
+            return new \WP_REST_Response( [ 'success' => false, 'message' => 'Utwór nie bierze udziału w bieżącym notowaniu.' ], 409 );
+        }
+
+        $toChart = ( $target === 'chart' );
+        if ( $toChart === ( (int) $entry['is_waiting'] === 0 ) ) {
+            return new \WP_REST_Response( [ 'success' => true, 'unchanged' => true ], 200 );
+        }
+
+        if ( $toChart ) {
+            $limit = \mors_get_config()['chartSize'];
+            if ( $entriesRepo->count_for_edition( $edition['id'], false ) >= $limit ) {
+                return new \WP_REST_Response( [
+                    'success' => false,
+                    'message' => sprintf( 'Główne Notowanie jest już pełne (maksymalnie %d pozycji). Najpierw przenieś inny utwór do poczekalni.', $limit ),
+                ], 409 );
+            }
+        } else {
+            $limit = \mors_get_config()['waitingSize'];
+            if ( $entriesRepo->count_for_edition( $edition['id'], true ) >= $limit ) {
+                return new \WP_REST_Response( [
+                    'success' => false,
+                    'message' => sprintf( 'Poczekalnia jest już pełna (maksymalnie %d pozycji). Najpierw usuń lub przenieś inny utwór.', $limit ),
+                ], 409 );
+            }
+        }
+
+        $tracksRepo->tx( function () use ( $tracksRepo, $entriesRepo, $edition, $entry, $id, $toChart ) {
+            $entriesRepo->update( $entry['id'], $toChart
+                ? [ 'is_waiting' => 0, 'position' => $entriesRepo->max_chart_position( $edition['id'] ) + 1, 'tag' => null ]
+                : [ 'is_waiting' => 1, 'position' => null ] );
+            if ( ! $toChart ) {
+                $entriesRepo->compact_chart_positions( $edition['id'] );
+            }
+            $tracksRepo->update( $id, [ 'status' => $toChart ? 'CHART' : 'WAITING_ROOM' ] );
+        } );
+
+        ( new Votes_Repo() )->log( get_current_user_id(), 'TRACK_MOVE', [ 'trackId' => $id, 'target' => $target ] );
+
+        return new \WP_REST_Response( [ 'success' => true ], 200 );
     }
 
     /** DELETE /admin/tracks/{id} — kaskadowe usunięcie (wpisy + głosy + utwór). */

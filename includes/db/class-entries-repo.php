@@ -68,6 +68,22 @@ class Entries_Repo extends Repo {
             $editionId, $waiting ? 1 : 0 ) );
     }
 
+    public function find_for_track( string $editionId, string $trackId ) {
+        $db = $this->wpdb(); $t = $this->t();
+        $row = $db->get_row( $db->prepare(
+            "SELECT * FROM {$t['entries']} WHERE edition_id = %s AND track_id = %s", $editionId, $trackId ), ARRAY_A );
+        return $row ?: null;
+    }
+
+    public function update( string $id, array $data ) {
+        $this->wpdb()->update( $this->t()['entries'], $data, [ 'id' => $id ] );
+    }
+
+    /** Zagęszcza pozycje notowania do 1..N zachowując bieżącą kolejność. */
+    public function compact_chart_positions( string $editionId ) {
+        $this->reorder_chart( $editionId, array_column( $this->chart_by_position( $editionId ), 'track_id' ) );
+    }
+
     /** Najwyższa pozycja na notowaniu (is_waiting=0) w danej edycji; 0, jeśli brak wpisów. */
     public function max_chart_position( string $editionId ): int {
         $db = $this->wpdb(); $t = $this->t();
