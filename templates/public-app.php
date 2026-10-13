@@ -872,6 +872,15 @@ if (!defined('ABSPATH')) {
         <input type="text" id="edit-track-artist" class="ug-input" required />
       </div>
 
+      <div class="ug-form-group">
+        <label class="ug-form-label" for="edit-track-section">Sekcja</label>
+        <select id="edit-track-section" class="ug-select">
+          <option value="waiting">Poczekalnia</option>
+          <option value="chart">Notowanie Główne (TOP)</option>
+        </select>
+        <span class="ug-small text-xs text-[#647391] mt-1 block">Zmiana sekcji przenosi utwór po zapisaniu (do Notowania trafia na koniec listy).</span>
+      </div>
+
       <div class="p-4 bg-[#F5F5F5] border border-[#D9D9D9] space-y-3">
         <label class="ug-form-label !mb-0">Okładka (.JPG, .PNG, .WEBP, max 2 MB)</label>
         <div class="flex items-center gap-4">

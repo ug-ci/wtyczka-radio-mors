@@ -1630,9 +1630,6 @@ class StudentRadioApp {
             <button onclick="app.openEditTrackModal('${t.id}')" class="text-[#647391] hover:text-[#032c73] p-1.5 hover:bg-[#032c73]/10" title="Edytuj utwór">
               <i data-lucide="pencil" class="w-4 h-4"></i>
             </button>
-            <button onclick="app.moveTrackAdmin('${t.id}', '${draggable ? 'waiting' : 'chart'}')" class="text-[#0041d2] hover:text-[#032c73] p-1.5 hover:bg-[#0041d2]/10" title="${draggable ? 'Przenieś do poczekalni' : 'Przenieś do Top 25'}">
-              <i data-lucide="${draggable ? 'chevrons-down' : 'chevrons-up'}" class="w-4 h-4"></i>
-            </button>
             <button onclick="app.removeTrackAdmin('${t.id}')" class="text-[#EF305E] hover:text-[#d9224e] p-1.5 hover:bg-[#EF305E]/10" title="Usuń utwór">
               <i data-lucide="trash-2" class="w-4 h-4"></i>
             </button>
@@ -1896,6 +1893,8 @@ class StudentRadioApp {
     this.editCoverRemoved = false;
     this.editCoverOriginal = t.coverImageUrl || '';
     this.editAudioFile = null;
+    this.editOriginalSection = t.section === 'Notowanie' ? 'chart' : 'waiting';
+    document.getElementById('edit-track-section').value = this.editOriginalSection;
     this.editHadAudio = !!t.hasAudio;
     document.getElementById('edit-track-audio-input').value = '';
     this.renderEditAudioStatus();
@@ -1996,28 +1995,25 @@ class StudentRadioApp {
       this.showToast(data.message || 'Nie udało się zapisać zmian.', 'warning');
       return;
     }
+    const id = this.editingTrackId;
+    const target = document.getElementById('edit-track-section').value;
+    const moving = target !== this.editOriginalSection;
+    let moveError = null;
+    if (moving) {
+      const mv = await this.apiSend(`/admin/tracks/${id}/move`, 'POST', { target });
+      if (!mv.ok) moveError = mv.data.message || 'Nie udało się przenieść utworu.';
+    }
     this.closeEditTrackModal();
     await this.refreshAdminTracks();
     await this.refreshChartState();
     this.render();
-    this.showToast('Zmiany zostały zapisane.', 'success');
-  }
-
-  async moveTrackAdmin(id, target) {
-    if (!this.adminUser) {
-      this.showToast('Wymagane uprawnienia redaktora.', 'warning');
-      this.openAdminLoginModal();
-      return;
+    if (moveError) {
+      this.showToast(`Zmiany zapisano, ale nie przeniesiono utworu: ${moveError}`, 'warning');
+    } else {
+      this.showToast(moving
+        ? (target === 'chart' ? 'Zapisano. Utwór przeniesiono do Notowania.' : 'Zapisano. Utwór przeniesiono do Poczekalni.')
+        : 'Zmiany zostały zapisane.', 'success');
     }
-    const { ok, data } = await this.apiSend(`/admin/tracks/${id}/move`, 'POST', { target });
-    if (!ok) {
-      this.showToast(data.message || 'Nie udało się przenieść utworu.', 'warning');
-      return;
-    }
-    await this.refreshAdminTracks();
-    await this.refreshChartState();
-    this.render();
-    this.showToast(target === 'chart' ? 'Utwór przeniesiono do Notowania.' : 'Utwór przeniesiono do Poczekalni.', 'success');
   }
 
   async removeTrackAdmin(id) {
