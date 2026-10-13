@@ -1522,7 +1522,7 @@ class StudentRadioApp {
     const container = document.getElementById('waiting-tracks-container');
     if (!container) return;
 
-    let html = `<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">`;
+    let html = `<div class="ug-card divide-y divide-[#D9D9D9]">`;
 
     this.state.waitingRoomTracks.forEach((track, idx) => {
       const isSelected = this.selectedVotes.has(track.id);
@@ -1530,40 +1530,31 @@ class StudentRadioApp {
 
       const trackCoverHtml = track.coverImage
         ? `<img src="${track.coverImage}" alt="${escapeHtml(track.title)}" class="w-full h-full object-cover" />`
-        : `<i data-lucide="${isPlaying ? 'pause' : 'play'}" class="w-5 h-5 text-white"></i>`;
+        : `<i data-lucide="${isPlaying ? 'pause' : 'play'}" class="w-4 h-4 text-white"></i>`;
 
       html += `
-        <div class="p-4 ug-card flex flex-col justify-between ${isSelected ? 'ug-card-selected' : ''}">
-          <div>
-            <div class="flex items-start justify-between gap-3 mb-3">
-              <div class="flex items-center gap-3 min-w-0">
-                <div class="relative w-12 h-12 bg-[#00214d] flex-shrink-0 flex items-center justify-center cursor-pointer shadow-sm overflow-hidden group" onclick="app.playAudioSnippet('${track.id}')">
-                  ${trackCoverHtml}
-                </div>
-                <div class="min-w-0">
-                  <span class="ug-tag ug-tag-sail text-[10px] font-bold">${escapeHtml(track.tag || 'Propozycja')}</span>
-                  <h4 class="font-headings font-bold text-[#032c73] text-sm mt-1 truncate">${escapeHtml(track.title)}</h4>
-                  <p class="ug-small truncate">${escapeHtml(track.artist)}</p>
-                </div>
-              </div>
-              <span class="text-xs font-headings font-bold text-[#647391] bg-[#F5F5F5] px-2 py-1 border border-[#D9D9D9]">#${idx + 1}</span>
-            </div>
+        <div class="flex items-center gap-3 px-3 py-2.5 ${isSelected ? 'ug-card-selected' : ''}">
+          <span class="w-8 flex-shrink-0 text-center text-xs font-headings font-bold text-[#647391]">${idx + 1}</span>
+          <div class="relative w-10 h-10 bg-[#00214d] flex-shrink-0 flex items-center justify-center cursor-pointer overflow-hidden" onclick="app.playAudioSnippet('${track.id}')">
+            ${trackCoverHtml}
           </div>
-
-          <div class="flex items-center justify-between pt-3 border-t border-[#D9D9D9] mt-2">
-            <span class="ug-small flex items-center gap-1">
-              <i data-lucide="clock" class="w-3 h-3"></i> ${track.weeksInWaiting} tyg. w poczekalni
-            </span>
-            <div class="flex items-center gap-2">
-              <button type="button" onclick="app.playAudioSnippet('${track.id}')" data-listen-btn="${track.id}" class="btn-mors-listen !py-1 !px-2.5 !text-xs ${isPlaying ? 'playing' : ''}" title="Odsłuchaj fragment">
-                <i data-lucide="${isPlaying ? 'square' : 'volume-2'}" class="w-3.5 h-3.5"></i>
-                <span class="hidden sm:inline">${isPlaying ? 'Stop' : 'Odsłuchaj'}</span>
-              </button>
-              <button type="button" onclick="app.toggleVote('${track.id}')" class="btn-mors-vote !py-1 !px-3 !text-xs ${isSelected ? 'selected' : ''}">
-                <i data-lucide="${isSelected ? 'check' : 'plus'}" class="w-3.5 h-3.5"></i>
-                <span>${isSelected ? 'Wybrano' : 'Głosuj'}</span>
-              </button>
-            </div>
+          <div class="min-w-0 flex-1">
+            <h4 class="font-headings font-bold text-[#032c73] text-sm truncate">${escapeHtml(track.title)}</h4>
+            <p class="ug-small truncate">${escapeHtml(track.artist)}</p>
+          </div>
+          <span class="ug-tag ug-tag-sail text-[10px] font-bold hidden md:inline-block flex-shrink-0">${escapeHtml(track.tag || 'Propozycja')}</span>
+          <span class="ug-small hidden lg:flex items-center gap-1 flex-shrink-0">
+            <i data-lucide="clock" class="w-3 h-3"></i> ${track.weeksInWaiting} tyg. w poczekalni
+          </span>
+          <div class="flex items-center gap-2 flex-shrink-0">
+            <button type="button" onclick="app.playAudioSnippet('${track.id}')" data-listen-btn="${track.id}" class="btn-mors-listen !py-1 !px-2.5 !text-xs ${isPlaying ? 'playing' : ''}" title="Odsłuchaj fragment">
+              <i data-lucide="${isPlaying ? 'square' : 'volume-2'}" class="w-3.5 h-3.5"></i>
+              <span class="hidden sm:inline">${isPlaying ? 'Stop' : 'Odsłuchaj'}</span>
+            </button>
+            <button type="button" onclick="app.toggleVote('${track.id}')" class="btn-mors-vote !py-1 !px-3 !text-xs ${isSelected ? 'selected' : ''}">
+              <i data-lucide="${isSelected ? 'check' : 'plus'}" class="w-3.5 h-3.5"></i>
+              <span>${isSelected ? 'Wybrano' : 'Głosuj'}</span>
+            </button>
           </div>
         </div>
       `;
