@@ -1143,7 +1143,7 @@ class StudentRadioApp {
     const hasValidExt = validAudioExtensions.some((ext) => fileName.endsWith(ext));
     const hasValidType = file.type ? validAudioTypes.includes(file.type) : false;
     if (!hasValidExt && !hasValidType) {
-      this.showToast('Obsługiwane formaty audio: .WAV, .FLAC, .MP3', 'warning');
+      this.showToast('Obsługiwane formaty audio: .WAV, .FLAC, .MP3, .OGG, .M4A', 'warning');
       return;
     }
 
@@ -1534,6 +1534,7 @@ class StudentRadioApp {
 
       html += `
         <div class="flex items-center gap-3 px-3 py-2.5 ${isSelected ? 'ug-card-selected' : ''}">
+        <div>
           <span class="w-8 flex-shrink-0 text-center text-xs font-headings font-bold text-[#647391]">${idx + 1}</span>
           <div class="relative w-10 h-10 bg-[#00214d] flex-shrink-0 flex items-center justify-center cursor-pointer overflow-hidden" onclick="app.playAudioSnippet('${track.id}')">
             ${trackCoverHtml}
@@ -1542,6 +1543,8 @@ class StudentRadioApp {
             <h4 class="font-headings font-bold text-[#032c73] text-sm truncate">${escapeHtml(track.title)}</h4>
             <p class="ug-small truncate">${escapeHtml(track.artist)}</p>
           </div>
+          </div>
+          <div>
           <span class="ug-small hidden lg:flex items-center gap-1 flex-shrink-0">
             <i data-lucide="clock" class="w-3 h-3"></i> ${track.weeksInWaiting} tyg. w poczekalni
           </span>
@@ -1554,6 +1557,7 @@ class StudentRadioApp {
               <i data-lucide="${isSelected ? 'check' : 'plus'}" class="w-3.5 h-3.5"></i>
               <span>${isSelected ? 'Wybrano' : 'Głosuj'}</span>
             </button>
+          </div>
           </div>
         </div>
       `;

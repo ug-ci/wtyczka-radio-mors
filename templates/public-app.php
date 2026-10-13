@@ -288,7 +288,8 @@ if (!defined('ABSPATH')) {
               <p class="text-sm font-headings font-semibold text-[#032c73]">Przeciągnij plik audio lub <span
                   class="text-[#0041d2] underline">wybierz z dysku</span></p>
               <p class="ug-small !text-xs !text-[#647391] mt-1">Obsługiwane formaty: <strong>.WAV</strong>,
-                <strong>.FLAC</strong> lub <strong>.MP3</strong>. Max 15 MB (zależnie od limitu uploadu serwera).
+                <strong>.FLAC</strong>, <strong>.MP3</strong>, <strong>.OGG</strong> lub <strong>.M4A</strong>.
+                Max <?php echo esc_html( size_format( min( 128 * MB_IN_BYTES, wp_max_upload_size() ) ) ); ?>.
               </p>
             </div>
 
