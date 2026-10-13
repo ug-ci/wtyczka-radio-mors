@@ -358,8 +358,8 @@ if (!defined('ABSPATH')) {
                   <input type="file" id="admin-cover-file-input" accept="image/jpeg,image/png,image/webp,image/jpg"
                     class="hidden" />
                   <p class="text-xs font-headings font-semibold text-[#032c73]">Kliknij lub upuść grafikę okładki</p>
-                  <p class="ug-small !text-[11px] text-[#647391] mt-0.5">Automatyczne przycięcie do 600×600 px i
-                    kompresja WebP</p>
+                  <p class="ug-small !text-[11px] text-[#647391] mt-0.5">Automatyczne zmniejszenie do 512 px
+                    szerokości i kadrowanie do kwadratu</p>
                 </div>
 
                 <button type="button" id="admin-cover-remove-btn" onclick="app.removePendingCover()"

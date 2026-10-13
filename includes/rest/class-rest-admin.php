@@ -31,6 +31,7 @@ class Admin {
         'audio/flac',
         'audio/x-flac',
     ];
+    const COVER_SIZE      = 512;
     const COVER_MAX_BYTES = 2 * MB_IN_BYTES;
     const AUDIO_MAX_BYTES = 120 * MB_IN_BYTES;
 
@@ -225,7 +226,9 @@ class Admin {
         if ( ! empty( $_FILES['cover'] ) ) {
             $cover_id = media_handle_upload( 'cover', 0 );
             if ( ! is_wp_error( $cover_id ) ) {
-                $data['cover_image_url'] = wp_get_attachment_url( $cover_id );
+                $this->normalize_cover( $cover_id );
+                $this->normalize_cover( $cover_id );
+            $data['cover_image_url'] = wp_get_attachment_url( $cover_id );
             }
         }
         if ( ! empty( $_FILES['audio'] ) ) {
@@ -269,6 +272,32 @@ class Admin {
         ] );
 
         return new \WP_REST_Response( [ 'success' => true, 'track' => $track ], 200 );
+    }
+
+    /**
+     * Po wgraniu okładki: zmniejsza szerokość do COVER_SIZE px (tylko większe obrazy),
+     * a następnie kadruje do kwadratu (środek). Przy błędzie zostaje oryginał.
+     */
+    private function normalize_cover( $attachment_id ) {
+        $path = get_attached_file( $attachment_id );
+        if ( ! $path ) { return; }
+        $editor = wp_get_image_editor( $path );
+        if ( is_wp_error( $editor ) ) { return; }
+
+        $size = $editor->get_size();
+        if ( $size['width'] > self::COVER_SIZE ) {
+            if ( is_wp_error( $editor->resize( self::COVER_SIZE, null, false ) ) ) { return; }
+            $size = $editor->get_size();
+        }
+        $side = min( $size['width'], $size['height'] );
+        if ( $size['width'] !== $size['height'] ) {
+            $x = (int) floor( ( $size['width'] - $side ) / 2 );
+            $y = (int) floor( ( $size['height'] - $side ) / 2 );
+            if ( is_wp_error( $editor->crop( $x, $y, $side, $side ) ) ) { return; }
+        }
+        if ( is_wp_error( $editor->save( $path ) ) ) { return; }
+
+        wp_update_attachment_metadata( $attachment_id, wp_generate_attachment_metadata( $attachment_id, $path ) );
     }
 
     /**
