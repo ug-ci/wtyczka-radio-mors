@@ -51,6 +51,7 @@ class Admin {
 
         register_rest_route( 'mors/v1', '/admin/tracks/(?P<id>[a-f0-9-]+)', [
             [ 'methods' => 'PUT',    'permission_callback' => $cap, 'callback' => [ $this, 'update_track' ] ],
+            [ 'methods' => 'POST',   'permission_callback' => $cap, 'callback' => [ $this, 'update_track' ] ],
             [ 'methods' => 'DELETE', 'permission_callback' => $cap, 'callback' => [ $this, 'delete_track' ] ],
         ] );
 
@@ -316,6 +317,29 @@ class Admin {
         if ( array_key_exists( 'durationSeconds', $params ) ) {
             $data['duration_seconds'] = ( $params['durationSeconds'] === null || $params['durationSeconds'] === '' )
                 ? null : (int) $params['durationSeconds'];
+        }
+
+        foreach ( [ 'title', 'artist' ] as $f ) {
+            if ( array_key_exists( $f, $data ) && $data[ $f ] === '' ) {
+                return new \WP_REST_Response( [ 'success' => false, 'message' => 'Tytuł i wykonawca nie mogą być puste.' ], 400 );
+            }
+        }
+
+        if ( ! empty( $_FILES['cover']['tmp_name'] ) ) {
+            $err = $this->validate_upload( 'cover', self::COVER_MIMES, self::COVER_MAX_BYTES );
+            if ( is_wp_error( $err ) ) {
+                return new \WP_REST_Response( [ 'success' => false, 'message' => $err->get_error_message() ], 400 );
+            }
+            require_once ABSPATH . 'wp-admin/includes/file.php';
+            require_once ABSPATH . 'wp-admin/includes/media.php';
+            require_once ABSPATH . 'wp-admin/includes/image.php';
+            $cover_id = media_handle_upload( 'cover', 0 );
+            if ( is_wp_error( $cover_id ) ) {
+                return new \WP_REST_Response( [ 'success' => false, 'message' => $cover_id->get_error_message() ], 400 );
+            }
+            $data['cover_image_url'] = wp_get_attachment_url( $cover_id );
+        } elseif ( ! empty( $params['removeCover'] ) && $params['removeCover'] !== 'false' && $params['removeCover'] !== '0' ) {
+            $data['cover_image_url'] = null;
         }
 
         $repo->update( $id, $data );

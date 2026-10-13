@@ -767,6 +767,61 @@ if (!defined('ABSPATH')) {
     </div>
   </div>
 
+  <!-- Lightbox: edycja utworu -->
+  <div id="admin-edit-track-modal" class="hidden fixed inset-0 z-50 ug-modal-backdrop flex items-center justify-center p-4 overflow-y-auto">
+    <form class="bg-white border border-[#D9D9D9] p-6 sm:p-8 max-w-lg w-full shadow-ug-lg space-y-5"
+      onsubmit="event.preventDefault(); app.saveEditedTrack();">
+      <div class="flex items-center justify-between gap-3">
+        <h3 class="ug-h4 !text-lg !font-bold !text-[#032c73] flex items-center gap-2">
+          <i data-lucide="pencil" class="w-5 h-5 text-[#0041d2]"></i>
+          <span>Edytuj utwór</span>
+        </h3>
+        <button type="button" onclick="app.closeEditTrackModal()" class="text-[#647391] hover:text-[#032c73] p-1" title="Zamknij">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="ug-form-group">
+        <label class="ug-form-label" for="edit-track-title">Tytuł</label>
+        <input type="text" id="edit-track-title" class="ug-input" required />
+      </div>
+      <div class="ug-form-group">
+        <label class="ug-form-label" for="edit-track-artist">Wykonawca</label>
+        <input type="text" id="edit-track-artist" class="ug-input" required />
+      </div>
+
+      <div class="p-4 bg-[#F5F5F5] border border-[#D9D9D9] space-y-3">
+        <label class="ug-form-label !mb-0">Okładka (.JPG, .PNG, .WEBP, max 2 MB)</label>
+        <div class="flex items-center gap-4">
+          <div class="w-20 h-20 bg-[#00214d] flex items-center justify-center overflow-hidden flex-shrink-0 border border-[#D9D9D9]">
+            <img id="edit-track-cover-img" src="" alt="Okładka" class="hidden w-full h-full object-cover" />
+            <i id="edit-track-cover-placeholder" data-lucide="music" class="w-6 h-6 text-white"></i>
+          </div>
+          <div class="flex flex-col gap-2">
+            <input type="file" id="edit-track-cover-input" accept="image/jpeg,image/png,image/webp,image/gif" class="hidden"
+              onchange="app.onEditCoverSelected(this.files[0])" />
+            <button type="button" onclick="document.getElementById('edit-track-cover-input').click()"
+              class="btn-ug-outlined btn-ug-sm">
+              <i data-lucide="upload" class="w-4 h-4"></i><span>Zmień okładkę</span>
+            </button>
+            <button type="button" id="edit-track-cover-remove" onclick="app.removeEditCover()"
+              class="hidden btn-ug-outlined btn-ug-sm !text-[#EF305E] !border-[#EF305E]/40 hover:!bg-[#EF305E]/10">
+              <i data-lucide="trash-2" class="w-4 h-4"></i><span>Usuń okładkę</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-3 pt-2">
+        <button type="button" onclick="app.closeEditTrackModal()"
+          class="px-4 py-2 text-[#647391] hover:text-[#032c73] text-xs font-headings font-semibold">Anuluj</button>
+        <button type="submit" id="edit-track-save-btn" class="btn-ug-primary">
+          <i data-lucide="check" class="w-4 h-4"></i><span>Zapisz zmiany</span>
+        </button>
+      </div>
+    </form>
+  </div>
+
   <!-- Toast Notification Container -->
   <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none">
   </div>

@@ -1627,6 +1627,9 @@ class StudentRadioApp {
         <td class="p-3 font-headings font-bold text-[#032c73]">${t.votes || 0} pkt</td>
         <td class="p-3 text-right">
           <div class="inline-flex items-center gap-1">
+            <button onclick="app.openEditTrackModal('${t.id}')" class="text-[#647391] hover:text-[#032c73] p-1.5 hover:bg-[#032c73]/10" title="Edytuj utwór">
+              <i data-lucide="pencil" class="w-4 h-4"></i>
+            </button>
             <button onclick="app.moveTrackAdmin('${t.id}', '${draggable ? 'waiting' : 'chart'}')" class="text-[#0041d2] hover:text-[#032c73] p-1.5 hover:bg-[#0041d2]/10" title="${draggable ? 'Przenieś do poczekalni' : 'Przenieś do Top 25'}">
               <i data-lucide="${draggable ? 'chevrons-down' : 'chevrons-up'}" class="w-4 h-4"></i>
             </button>
@@ -1753,6 +1756,94 @@ class StudentRadioApp {
     await this.refreshChartState();
     if (this.adminUser) await this.refreshAdminTracks();
     this.render();
+  }
+
+  // --- EDYCJA UTWORU (lightbox) ---
+  openEditTrackModal(id) {
+    if (!this.adminUser) {
+      this.showToast('Wymagane uprawnienia redaktora.', 'warning');
+      this.openAdminLoginModal();
+      return;
+    }
+    const t = this.adminTracks.find((x) => x.id === id);
+    if (!t) return;
+    this.editingTrackId = id;
+    this.editCoverFile = null;
+    this.editCoverRemoved = false;
+    this.editCoverOriginal = t.coverImageUrl || '';
+    document.getElementById('edit-track-title').value = t.title || '';
+    document.getElementById('edit-track-artist').value = t.artist || '';
+    document.getElementById('edit-track-cover-input').value = '';
+    this.renderEditCoverPreview(this.editCoverOriginal);
+    document.getElementById('admin-edit-track-modal').classList.remove('hidden');
+    morsCreateIcons();
+  }
+
+  closeEditTrackModal() {
+    document.getElementById('admin-edit-track-modal').classList.add('hidden');
+    this.editingTrackId = null;
+    this.editCoverFile = null;
+  }
+
+  renderEditCoverPreview(url) {
+    const img = document.getElementById('edit-track-cover-img');
+    const ph = document.getElementById('edit-track-cover-placeholder');
+    const rm = document.getElementById('edit-track-cover-remove');
+    if (url) { img.src = url; img.classList.remove('hidden'); ph.classList.add('hidden'); }
+    else { img.removeAttribute('src'); img.classList.add('hidden'); ph.classList.remove('hidden'); }
+    rm.classList.toggle('hidden', !url);
+  }
+
+  onEditCoverSelected(file) {
+    if (!file) return;
+    if (!['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(file.type)) {
+      this.showToast('Okładka musi być plikiem JPG, PNG, WEBP lub GIF.', 'warning');
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      this.showToast('Okładka jest zbyt duża (max 2 MB).', 'warning');
+      return;
+    }
+    this.editCoverFile = file;
+    this.editCoverRemoved = false;
+    const reader = new FileReader();
+    reader.onload = (e) => this.renderEditCoverPreview(e.target.result);
+    reader.readAsDataURL(file);
+  }
+
+  removeEditCover() {
+    this.editCoverFile = null;
+    this.editCoverRemoved = true;
+    document.getElementById('edit-track-cover-input').value = '';
+    this.renderEditCoverPreview('');
+  }
+
+  async saveEditedTrack() {
+    const title = document.getElementById('edit-track-title').value.trim();
+    const artist = document.getElementById('edit-track-artist').value.trim();
+    if (!title || !artist) {
+      this.showToast('Wprowadź tytuł utworu i wykonawcę.', 'warning');
+      return;
+    }
+    const btn = document.getElementById('edit-track-save-btn');
+    btn.disabled = true;
+    const fd = new FormData();
+    fd.append('title', title);
+    fd.append('artist', artist);
+    if (this.editCoverFile) fd.append('cover', this.editCoverFile);
+    else if (this.editCoverRemoved && this.editCoverOriginal) fd.append('removeCover', '1');
+
+    const { ok, data } = await this.apiUpload(`/admin/tracks/${this.editingTrackId}`, fd);
+    btn.disabled = false;
+    if (!ok) {
+      this.showToast(data.message || 'Nie udało się zapisać zmian.', 'warning');
+      return;
+    }
+    this.closeEditTrackModal();
+    await this.refreshAdminTracks();
+    await this.refreshChartState();
+    this.render();
+    this.showToast('Zmiany zostały zapisane.', 'success');
   }
 
   async moveTrackAdmin(id, target) {
