@@ -32,7 +32,7 @@ class Admin {
         'audio/x-flac',
     ];
     const COVER_MAX_BYTES = 2 * MB_IN_BYTES;
-    const AUDIO_MAX_BYTES = 128 * MB_IN_BYTES;
+    const AUDIO_MAX_BYTES = 120 * MB_IN_BYTES;
 
     public function register() {
         $cap = [ $this, 'require_cap' ];
